@@ -1,0 +1,16 @@
+name: Correctness
+on: [push, pull_request]
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MPI
+        run: sudo apt-get update && sudo apt-get install -y libopenmpi-dev openmpi-bin
+      - name: Configure
+        # CI runners may expose fewer CPU slots than the four correctness-test ranks.
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DMPIEXEC_PREFLAGS=--oversubscribe
+      - name: Build
+        run: cmake --build build --parallel 2
+      - name: Test
+        run: ctest --test-dir build --output-on-failure

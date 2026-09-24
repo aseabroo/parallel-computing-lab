@@ -26,6 +26,7 @@ Makefile.local
 output.csv
 *.log
 *.tmp
+results/
 
 # Editor / OS files
 .vscode/
