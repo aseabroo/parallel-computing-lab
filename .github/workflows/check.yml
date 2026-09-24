@@ -14,3 +14,14 @@ jobs:
         run: cmake --build build --parallel 2
       - name: Test
         run: ctest --test-dir build --output-on-failure
+      - name: Verify benchmark capture
+        run: |
+          python3 scripts/benchmark.py --binary build/cpu_lab --trials 10007 --repeats 3 --threads 1 2 4 --output results/ci.csv
+          python3 - <<'PY'
+          import csv, json
+          rows = list(csv.DictReader(open('results/ci.csv')))
+          manifest = json.load(open('results/ci.manifest.json'))
+          assert len(rows) == 9 and len({r['hits'] for r in rows}) == 1
+          assert [[int(r['threads']) for r in rows[i:i+3]] for i in (0, 3, 6)] == [[1, 2, 4], [2, 4, 1], [4, 1, 2]]
+          assert manifest['source_revision'] and len(manifest['binary_sha256']) == 64
+          PY
