@@ -1,6 +1,6 @@
 # Parallel Computing Lab
 
-Small, reproducible CPU and optional MPI experiments, independently implemented from workload descriptions. This repository is **not** a dump of CS475 submissions. Earlier coursework motivated the workloads; no starter code, historical benchmark results or third-party datasets are included.
+Small, reproducible CPU and optional MPI experiments, freshly implemented from workload descriptions. This repository is **not** a dump of CS475 submissions. Earlier coursework motivated the workloads; no starter code, historical benchmark results or third-party datasets are included. The current rebuild and benchmark-runner improvements were written with AI assistance under the maintainer's direction; see [the implementation walkthrough](docs/implementation_walkthrough.md) for technical and authorship boundaries.
 
 ## Build and verify
 
@@ -22,6 +22,8 @@ python3 scripts/benchmark.py --binary build/cpu_lab --trials 1000000 --repeats 5
 ```
 
 Review the generated CSV and `results/local-run.manifest.json` together. `results/` is local scratch output; source revision and machine context are captured, but the runner cannot infer background load or compiler flags.
+
+The runner rotates the order of thread counts between rounds and records chronological launch order, binary SHA-256 and repository revision. It refuses to overwrite an earlier run. Before comparing thread counts, inspect the full spread of times: a shared machine can produce large spikes even when every result is correct. On a Mac without an OpenMP-enabled compiler, use `--threads 1` until OpenMP is available; `cpu_lab` rejects multiple threads when it was built without OpenMP.
 
 `cpu_lab` estimates π from a stateless seeded two-dimensional sample. Every thread count uses the same samples; each run is checked against a serial hit count before a CSV row is emitted. `mpi_signal` creates a synthetic signal on rank zero, distributes all samples with `MPI_Scatterv`, projects onto a known sine component, reduces partial sums and compares with a serial double-precision reference. Its measured MPI interval includes barrier, scatter, projection and reduction, but excludes signal generation and output. The CPU measured interval covers counting only; it excludes serial validation, process startup and CSV output.
 
